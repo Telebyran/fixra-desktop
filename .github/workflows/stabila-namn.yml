@@ -1,0 +1,32 @@
+name: Stabila nedladdningsnamn
+
+# fixra.se länkar till .../releases/latest/download/Fixra-mac.dmg osv.
+# Varje gång en version publiceras läggs kopior med de fasta namnen till,
+# så att länkarna på sajten aldrig behöver ändras vid en ny version.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  kopiera:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lägg till fasta namn på senaste versionen
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG=$(gh release view --repo "$REPO" --json tagName -q .tagName)
+          echo "Version: $TAG"
+          mkdir -p ut && cd ut
+          gh release download "$TAG" --repo "$REPO" --pattern '*_universal.dmg' --pattern '*_x64-setup.exe' --pattern '*_x64_sv-SE.msi' --clobber
+          cp *_universal.dmg Fixra-mac.dmg
+          cp *_x64-setup.exe Fixra-windows.exe
+          cp *_x64_sv-SE.msi Fixra-windows.msi
+          gh release upload "$TAG" --repo "$REPO" --clobber Fixra-mac.dmg Fixra-windows.exe Fixra-windows.msi
+          ls -l
