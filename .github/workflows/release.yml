@@ -64,7 +64,23 @@ jobs:
           # (Developer-behörighet). Nyckel-id och utfärdare är inte hemliga.
           if [ -n "$APPLE_API_PRIVATE_KEY" ]; then
             KEYFILE="$RUNNER_TEMP/AuthKey_T8K6J43R53.p8"
-            printf '%s\n' "$APPLE_API_PRIVATE_KEY" > "$KEYFILE"
+            # Bygg om PEM-filen oavsett hur den klistrades in (radbrytningar
+            # som försvunnit, mellanslag, \r). Bara base64-kroppen behålls.
+            BODY=$(printf '%s' "$APPLE_API_PRIVATE_KEY" \
+              | sed -e 's/-----BEGIN PRIVATE KEY-----//' -e 's/-----END PRIVATE KEY-----//' \
+              | tr -d ' \r\n\t')
+            {
+              echo "-----BEGIN PRIVATE KEY-----"
+              printf '%s' "$BODY" | fold -w 64
+              echo
+              echo "-----END PRIVATE KEY-----"
+            } > "$KEYFILE"
+            if openssl pkey -in "$KEYFILE" -noout 2>/dev/null; then
+              echo "Notariseringsnyckeln är giltig."
+            else
+              echo "::error::APPLE_API_PRIVATE_KEY går inte att läsa som nyckel — klistra in hela AuthKey_T8K6J43R53.p8 igen."
+              exit 1
+            fi
             {
               echo "APPLE_API_KEY=T8K6J43R53"
               echo "APPLE_API_ISSUER=d941c532-ff70-43d4-b923-5a5634c78112"
