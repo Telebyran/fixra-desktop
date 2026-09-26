@@ -48,27 +48,29 @@ jobs:
         env:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_API_PRIVATE_KEY: ${{ secrets.APPLE_API_PRIVATE_KEY }}
         run: |
           if [ -n "$APPLE_CERTIFICATE" ]; then
             {
               echo "APPLE_CERTIFICATE=$APPLE_CERTIFICATE"
               echo "APPLE_CERTIFICATE_PASSWORD=$APPLE_CERTIFICATE_PASSWORD"
-              echo "APPLE_SIGNING_IDENTITY=$APPLE_SIGNING_IDENTITY"
+              echo "APPLE_SIGNING_IDENTITY=Developer ID Application: Telink PBX AB (HQAGGRD9A8)"
             } >> "$GITHUB_ENV"
             echo "Signerar med Developer ID."
           else
             echo "Inget Apple-certifikat — bygger osignerat."
           fi
-          if [ -n "$APPLE_ID" ]; then
+          # Notarisering med App Store Connect-nyckeln "fixra-notarisering"
+          # (Developer-behörighet). Nyckel-id och utfärdare är inte hemliga.
+          if [ -n "$APPLE_API_PRIVATE_KEY" ]; then
+            KEYFILE="$RUNNER_TEMP/AuthKey_T8K6J43R53.p8"
+            printf '%s\n' "$APPLE_API_PRIVATE_KEY" > "$KEYFILE"
             {
-              echo "APPLE_ID=$APPLE_ID"
-              echo "APPLE_PASSWORD=$APPLE_PASSWORD"
-              echo "APPLE_TEAM_ID=$APPLE_TEAM_ID"
+              echo "APPLE_API_KEY=T8K6J43R53"
+              echo "APPLE_API_ISSUER=d941c532-ff70-43d4-b923-5a5634c78112"
+              echo "APPLE_API_KEY_PATH=$KEYFILE"
             } >> "$GITHUB_ENV"
+            echo "Notariserar hos Apple."
           fi
 
       - uses: tauri-apps/tauri-action@v0

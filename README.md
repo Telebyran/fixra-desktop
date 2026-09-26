@@ -45,8 +45,8 @@ Byggen sker i GitHub Actions (`.github/workflows/release.yml`):
 |---|---|---|
 | `TAURI_SIGNING_PRIVATE_KEY` | Ja | Uppdateringsnyckeln (privat). Den publika ligger i `tauri.conf.json`. **Tappas den kan befintliga installationer aldrig uppdateras** |
 | `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` | Ja (tom) | Tom sträng |
-| `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD`, `APPLE_SIGNING_IDENTITY` | För kunder | "Developer ID Application"-certifikat (base64 .p12) |
-| `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID` | För kunder | Notarisering (app-specifikt lösenord från appleid.apple.com) |
+| `APPLE_CERTIFICATE`, `APPLE_CERTIFICATE_PASSWORD` | För kunder | "Developer ID Application: Telink PBX AB" (base64 .p12, giltigt till 2031-09-17) |
+| `APPLE_API_PRIVATE_KEY` | För kunder | Innehållet i AuthKey_T8K6J43R53.p8 (App Store Connect-nyckeln "fixra-notarisering", Developer-behörighet) |
 
 Utan Apple-signering startar Mac-appen bara via högerklick → Öppna. Windows utan
 kodsigneringscertifikat visar SmartScreen-varning ("Mer info → Kör ändå") tills
