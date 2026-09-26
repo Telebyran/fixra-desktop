@@ -1,0 +1,13 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "fixra-web",
+  "description": "Vad app.fixra.se får be skalet om: notiser och märke på dockikonen. Inget filsystem, inga skal-kommandon.",
+  "windows": ["main"],
+  "remote": {
+    "urls": ["https://app.fixra.se/*", "https://fixra.lovable.app/*"]
+  },
+  "permissions": [
+    "notification:default",
+    "allow-set-badge"
+  ]
+}

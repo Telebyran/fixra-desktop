@@ -1,0 +1,15 @@
+{
+  "name": "fixra-desktop",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Fixra för Mac och Windows",
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "icons": "tauri icon assets/icon.png"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.11.5"
+  }
+}

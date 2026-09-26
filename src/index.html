@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fixra</title>
+<style>
+  :root {
+    --bg: #0a291c;
+    --bg-2: #0f3a28;
+    --green: #35c08a;
+    --mint: #bfead5;
+    --text: #f1f9f3;
+    --muted: rgba(241, 249, 243, 0.62);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: radial-gradient(120% 90% at 20% 0%, var(--bg-2) 0%, var(--bg) 60%);
+    color: var(--text);
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", Inter, system-ui, sans-serif;
+    display: grid;
+    place-items: center;
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: default;
+    overflow: hidden;
+  }
+  main { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 24px; max-width: 420px; }
+  .mark { width: 54px; height: auto; color: var(--green); animation: breathe 2.4s ease-in-out infinite; }
+  .word { margin-top: 18px; font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+  .bar { margin-top: 28px; width: 160px; height: 3px; border-radius: 3px; background: rgba(191, 234, 213, 0.14); overflow: hidden; }
+  .bar i { display: block; width: 40%; height: 100%; border-radius: 3px; background: var(--green); animation: slide 1.1s ease-in-out infinite; }
+  .status { margin-top: 14px; color: var(--muted); font-size: 13px; min-height: 20px; }
+  .offline { display: none; margin-top: 26px; }
+  .offline h1 { margin: 0; font-size: 20px; font-weight: 650; letter-spacing: -0.01em; }
+  .offline p { margin: 8px 0 0; color: var(--muted); }
+  button {
+    margin-top: 22px; height: 44px; padding: 0 22px; border: 0; border-radius: 12px;
+    background: var(--green); color: #07301f; font: inherit; font-weight: 650; cursor: pointer;
+  }
+  button:hover { filter: brightness(1.06); }
+  button:focus-visible { outline: 2px solid var(--mint); outline-offset: 3px; }
+  body.is-offline .bar, body.is-offline .status { display: none; }
+  body.is-offline .offline { display: block; }
+  body.is-offline .mark { animation: none; opacity: 0.9; }
+  @keyframes slide { 0% { transform: translateX(-110%); } 100% { transform: translateX(260%); } }
+  @keyframes breathe { 0%, 100% { opacity: 1; } 50% { opacity: 0.72; } }
+  @media (prefers-reduced-motion: reduce) { .mark, .bar i { animation: none; } }
+</style>
+</head>
+<body>
+<main>
+  <svg class="mark" viewBox="0 0 954.16 1328.55" aria-hidden="true">
+    <polygon fill="currentColor" points="433.41 604.91 433.41 243.94 950.86 243.94 950.86 0 178.44 0 178.44 669.96 0 715.45 58.91 946.43 178.44 915.95 178.44 1328.55 433.41 1328.55 433.41 889.45 282.38 889.45 433.41 850.9 437.96 849.76 954.16 718.07 895.14 487.09 433.41 604.91"/>
+  </svg>
+  <div class="word">Fixra</div>
+  <div class="bar" role="progressbar" aria-label="Startar"><i></i></div>
+  <div class="status" id="status" aria-live="polite">Startar…</div>
+
+  <section class="offline" aria-live="assertive">
+    <h1>Ingen anslutning till Fixra</h1>
+    <p>Datorn verkar vara offline, eller så når vi inte app.fixra.se just nu. Vi försöker igen automatiskt.</p>
+    <button type="button" id="retry">Försök igen</button>
+  </section>
+</main>
+<script>
+(function () {
+  var d = window.fixraDesktop || {};
+  var ORIGIN = typeof d.origin === "string" ? d.origin : "https://app.fixra.se";
+  var start = typeof d.startPath === "string" && d.startPath.charAt(0) === "/" && d.startPath.indexOf("//") !== 0 ? d.startPath : "/";
+  var status = document.getElementById("status");
+  var timer = null;
+  var busy = false;
+
+  function reachable(ms) {
+    // no-cors: vi bryr oss bara om att servern svarar, inte om innehållet.
+    var ctrl = "AbortController" in window ? new AbortController() : null;
+    var t = setTimeout(function () { if (ctrl) ctrl.abort(); }, ms);
+    return fetch(ORIGIN + "/robots.txt?ping=" + Date.now(), { mode: "no-cors", cache: "no-store", signal: ctrl ? ctrl.signal : undefined })
+      .then(function () { clearTimeout(t); return true; })
+      .catch(function () { clearTimeout(t); return false; });
+  }
+
+  function offline() {
+    busy = false;
+    document.body.classList.add("is-offline");
+    clearTimeout(timer);
+    timer = setTimeout(attempt, 5000);
+  }
+
+  function attempt() {
+    if (busy) return;
+    busy = true;
+    document.body.classList.remove("is-offline");
+    status.textContent = "Ansluter…";
+    reachable(8000).then(function (ok) {
+      busy = false;
+      if (ok) {
+        status.textContent = "Öppnar Fixra…";
+        window.location.replace(ORIGIN + start);
+        // Vakthund: svarar servern men sidan aldrig laddar (captive portal,
+        // brandvägg, halvtrasigt nät) ska användaren inte se en evig laddning.
+        clearTimeout(timer);
+        timer = setTimeout(offline, 25000);
+        return;
+      }
+      offline();
+    });
+  }
+
+  document.getElementById("retry").addEventListener("click", attempt);
+  window.addEventListener("online", attempt);
+  attempt();
+})();
+</script>
+</body>
+</html>
