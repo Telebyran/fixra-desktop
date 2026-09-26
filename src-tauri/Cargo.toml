@@ -1,6 +1,6 @@
 [package]
 name = "fixra-desktop"
-version = "1.0.0"
+version = "1.0.1"
 description = "Fixra för Mac och Windows"
 authors = ["Techgruppen i Norden AB"]
 edition = "2021"
